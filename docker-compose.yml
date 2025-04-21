@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  frontend:
+    image: sunilkumarmehta2002/frontend
+    deploy:
+      replicas: 3   # Adjust the number of replicas based on your needs
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 500M
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+    networks:
+      - fitmitra_network
+
+  backend:
+    image: sunilkumarmehta2002/backend
+    deploy:
+      replicas: 2   # Adjust the number of replicas based on your needs
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+    ports:
+      - "4000:4000"
+    environment:
+      - MONGO_URL=mongodb+srv://sunilkumarmehta:S6X56ipXTDoS2cUH@fitmitra.bssymqz.mongodb.net/?retryWrites=true
+    networks:
+      - fitmitra_network
+
+networks:
+  fitmitra_network:
+    driver: overlay
