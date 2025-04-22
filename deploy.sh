@@ -12,6 +12,15 @@ fi
 echo "Initializing a new Docker Swarm..."
 docker swarm init
 
+# Ensure the required network exists
+NETWORK_NAME="my_stack_fitmitra_network"
+if ! docker network ls | grep -q "$NETWORK_NAME"; then
+    echo "Creating network '$NETWORK_NAME'..."
+    docker network create "$NETWORK_NAME"
+else
+    echo "Network '$NETWORK_NAME' already exists."
+fi
+
 # Deploy the Docker Compose file as a stack
 STACK_NAME="my_stack"
 COMPOSE_FILE="docker-compose.yml"
