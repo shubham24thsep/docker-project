@@ -83,7 +83,7 @@ export default function IndexPage() {
                       className="rounded-tl-[0.75rem] rounded-tr-[0.75rem] rounded-br-[0] rounded-bl-[0] object-fill aspect-16:9"
                     />
                     {/* FIXME: This is a demo image after completing the create event function delete this */}
-
+<h1>Jai Shree Ram!!!</h1>
                     <div className="m-2 grid gap-2">
                       <div className="flex justify-between items-center">
                         <h1 className="font-bold text-lg mt-2">
