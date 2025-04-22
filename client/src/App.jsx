@@ -23,7 +23,7 @@ import Announcement from "./pages/Announcement";
 import Membership from "./pages/Membership";
 //import CreatEvent from "./pages/CreateEvent";
 
-axios.defaults.baseURL = "http://localhost:4000/";
+axios.defaults.baseURL = "http://51.21.131.91:4000/";
 axios.defaults.withCredentials = true;
 function App() {
   return (
