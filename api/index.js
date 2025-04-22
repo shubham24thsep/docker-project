@@ -21,7 +21,7 @@ app.use(cookieParser());
 app.use(
   cors({
     credentials: true,
-    origin: "http://51.21.131.91:5173",
+    origin: "http://65.0.133.105:5173",
   })
 );
 
