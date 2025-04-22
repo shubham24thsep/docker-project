@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   frontend:
-    image: sunilkumarmehta2002/frontend
+    image: raoneface26/frontend
     deploy:
       replicas: 3   # Adjust the number of replicas based on your needs
       resources:
@@ -17,7 +17,7 @@ services:
       - fitmitra_network
 
   backend:
-    image: sunilkumarmehta2002/backend
+    image: raoneface26/backend
     deploy:
       replicas: 2   # Adjust the number of replicas based on your needs
       resources:
