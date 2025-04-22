@@ -10,9 +10,13 @@ check_service_health() {
     echo "Checking health of $service_name..."
     
     while [ $attempt -le $max_attempts ]; do
+        # Check if service exists and has running replicas
         if docker service ls --format "{{.Name}} {{.Replicas}}" | grep -q "$service_name.*[0-9]/[0-9]"; then
-            health_status="healthy"
-            break
+            # Check if all replicas are running
+            if docker service ps --format "{{.CurrentState}}" $service_name | grep -q "Running"; then
+                health_status="healthy"
+                break
+            fi
         fi
         echo "Attempt $attempt: Service $service_name not ready yet..."
         sleep 10
@@ -40,6 +44,24 @@ STACK_NAME="my_stack"
 COMPOSE_FILE="docker-compose.yml"
 NETWORK_NAME="my_stack_fitmitra_network"
 
+# Initialize swarm if not already initialized
+if ! docker info | grep -q "Swarm: active"; then
+    echo "Initializing Docker Swarm..."
+    docker swarm init
+fi
+
+# Handle network creation
+echo "Checking network status..."
+if ! docker network ls | grep -q "$NETWORK_NAME"; then
+    echo "Creating network '$NETWORK_NAME'..."
+    docker network create --driver overlay "$NETWORK_NAME"
+else
+    echo "Network '$NETWORK_NAME' already exists. Removing and recreating..."
+    docker network rm "$NETWORK_NAME" || true
+    sleep 5
+    docker network create --driver overlay "$NETWORK_NAME"
+fi
+
 # Check if stack exists
 if docker stack ls | grep -q "$STACK_NAME"; then
     echo "Existing stack found. Preparing for zero-downtime deployment..."
@@ -49,20 +71,6 @@ if docker stack ls | grep -q "$STACK_NAME"; then
     echo "Renaming existing stack to $OLD_STACK_NAME..."
     docker stack deploy -c "$COMPOSE_FILE" "$OLD_STACK_NAME"
     sleep 10
-fi
-
-# Initialize swarm if not already initialized
-if ! docker info | grep -q "Swarm: active"; then
-    echo "Initializing Docker Swarm..."
-    docker swarm init
-fi
-
-# Handle network creation
-if ! docker network ls | grep -q "$NETWORK_NAME"; then
-    echo "Creating network '$NETWORK_NAME'..."
-    docker network create --driver overlay "$NETWORK_NAME"
-else
-    echo "Network '$NETWORK_NAME' already exists."
 fi
 
 # Deploy new stack
