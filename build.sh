@@ -2,7 +2,7 @@
 
 # Variables
 VERSION_FILE="version.txt"
-DOCKER_USERNAME="sunilkumarmehta2002"
+DOCKER_USERNAME="raoneface26"
 CLIENT_IMAGE_NAME="frontend"
 API_IMAGE_NAME="backend"
 
