@@ -3,66 +3,31 @@ services:
   frontend:
     image: sunilkumarmehta2002/frontend
     deploy:
-      replicas: 3 # Adjust the number of replicas based on your needs
+      replicas: 3
       resources:
         limits:
           cpus: "0.5"
           memory: 500M
-      update_config:
-        order: start-first
-        failure_action: rollback
-        delay: 10s
-        parallelism: 1
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        max_attempts: 3
-        window: 120s
     ports:
       - "5173:80"
-    depends_on:
-      - backend
     networks:
       - fitmitra_network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:80"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 30s
 
   backend:
     image: sunilkumarmehta2002/backend
     deploy:
-      replicas: 2 # Adjust the number of replicas based on your needs
+      replicas: 2
       resources:
         limits:
           cpus: "1"
           memory: 1G
-      update_config:
-        order: start-first
-        failure_action: rollback
-        delay: 10s
-        parallelism: 1
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        max_attempts: 3
-        window: 120s
     ports:
       - "4000:4000"
     environment:
       - MONGO_URL=mongodb+srv://sunilkumarmehta:S6X56ipXTDoS2cUH@fitmitra.bssymqz.mongodb.net/?retryWrites=true
     networks:
       - fitmitra_network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 30s
 
 networks:
   fitmitra_network:
     driver: overlay
-    attachable: true

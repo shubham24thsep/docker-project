@@ -1,93 +1,40 @@
 #!/bin/bash
 
-# Function to check service health
-check_service_health() {
-    local service_name=$1
-    local max_attempts=30
-    local attempt=1
-    local health_status="unhealthy"
-
-    echo "Checking health of $service_name..."
-    
-    while [ $attempt -le $max_attempts ]; do
-        # Check if service exists and has running replicas
-        if docker service ls --format "{{.Name}} {{.Replicas}}" | grep -q "$service_name.*[0-9]/[0-9]"; then
-            # Check if all replicas are running
-            if docker service ps --format "{{.CurrentState}}" $service_name | grep -q "Running"; then
-                health_status="healthy"
-                break
-            fi
-        fi
-        echo "Attempt $attempt: Service $service_name not ready yet..."
-        sleep 10
-        attempt=$((attempt + 1))
-    done
-
-    if [ "$health_status" != "healthy" ]; then
-        echo "Service $service_name failed to become healthy"
-        return 1
-    fi
-    return 0
-}
-
-# Function to rollback deployment
-rollback_deployment() {
-    local stack_name=$1
-    echo "Rolling back deployment..."
-    docker stack rm $stack_name
-    sleep 10
-    exit 1
-}
-
-# Main deployment logic
+# Variables
 STACK_NAME="my_stack"
 COMPOSE_FILE="docker-compose.yml"
-NETWORK_NAME="my_stack_fitmitra_network"
 
-# Initialize swarm if not already initialized
-if ! docker info | grep -q "Swarm: active"; then
-    echo "Initializing Docker Swarm..."
-    docker swarm init
-fi
-
-# Handle network creation
-echo "Checking network status..."
-if ! docker network ls | grep -q "$NETWORK_NAME"; then
-    echo "Creating network '$NETWORK_NAME'..."
-    docker network create --driver overlay "$NETWORK_NAME"
-else
-    echo "Network '$NETWORK_NAME' already exists. Removing and recreating..."
-    docker network rm "$NETWORK_NAME" || true
-    sleep 5
-    docker network create --driver overlay "$NETWORK_NAME"
-fi
-
-# Check if stack exists
-if docker stack ls | grep -q "$STACK_NAME"; then
-    echo "Existing stack found. Preparing for zero-downtime deployment..."
-    OLD_STACK_NAME="${STACK_NAME}_old"
+# Function to clean up existing stack and swarm
+cleanup() {
+    echo "Cleaning up existing stack and swarm..."
     
-    # Rename existing stack
-    echo "Renaming existing stack to $OLD_STACK_NAME..."
-    docker stack deploy -c "$COMPOSE_FILE" "$OLD_STACK_NAME"
-    sleep 10
-fi
+    # Remove existing stack if it exists
+    if docker stack ls | grep -q "$STACK_NAME"; then
+        echo "Removing existing stack..."
+        docker stack rm "$STACK_NAME"
+        sleep 10
+    fi
 
-# Deploy new stack
-echo "Deploying new stack '$STACK_NAME'..."
+    # Leave swarm if part of one
+    if docker info | grep -q "Swarm: active"; then
+        echo "Leaving existing swarm..."
+        docker swarm leave --force
+        sleep 5
+    fi
+}
+
+# Main deployment process
+echo "Starting deployment process..."
+
+# Clean up existing deployment
+cleanup
+
+# Initialize new swarm
+echo "Initializing new swarm..."
+docker swarm init
+
+# Deploy stack
+echo "Deploying stack '$STACK_NAME'..."
 docker stack deploy -c "$COMPOSE_FILE" "$STACK_NAME"
-
-# Check health of new services
-echo "Checking health of new services..."
-if ! check_service_health "${STACK_NAME}_frontend" || ! check_service_health "${STACK_NAME}_backend"; then
-    echo "New deployment failed health check"
-    rollback_deployment "$STACK_NAME"
-fi
-
-# If new deployment is healthy, remove old stack
-if [ -n "$OLD_STACK_NAME" ]; then
-    echo "New deployment is healthy. Removing old stack..."
-    docker stack rm "$OLD_STACK_NAME"
-fi
 
 echo "Deployment completed successfully!"
