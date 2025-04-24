@@ -13,7 +13,7 @@ function Footer() {
                 alt="Pro-verots Logo"
               /> */}
               <span className="self-center text-2xl font-semibold whitespace-nowrap text-black">
-                sunil kumar
+                shubham kumar
               </span>
             </a>
           </div>
