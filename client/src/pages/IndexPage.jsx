@@ -63,7 +63,7 @@ export default function IndexPage() {
                     <div className="rounded-tl-[0.75rem] rounded-tr-[0.75rem] rounded-br-[0] rounded-bl-[0] object-fill aspect-16:9">
                       {event.image && (
                         <img
-                          src={`http://52.66.22.82:4000/api/${event.image}`}
+                          src={`http://65.0.168.211:4000/api/${event.image}`}
                           alt={event.title}
                           width="300"
                           height="200"
